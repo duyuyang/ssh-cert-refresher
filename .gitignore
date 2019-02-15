@@ -3,6 +3,7 @@
 
 # built binary
 ssh-cert-refresher
+driver
 
 # OSX trash
 .DS_Store
