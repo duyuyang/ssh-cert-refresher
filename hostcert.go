@@ -14,36 +14,18 @@
 
 package main
 
-var (
-	certDNSRecord string
-	jobTimeout    string
-	jobInterval   string
-	refresherType string
-)
+// Implement Host Certificate required interfaces
 
-const (
-	sshdCfgPath = "/etc/ssh/"
-	sshdCfgFile = "sshd_config"
-)
+// ------------
 
-// init functions collect configuration data
-func init() {
-	refresherType = "default"
-	certDNSRecord = "facebook.com"
-}
+// Implement the interface `sshKeyGenerator` to generate host key pairs
 
-func main() {
+// Implement the interface `certSigner` to sign the key
+// require Host CA to sign the public key
+// return the host cert
 
-	switch refresherType {
-	case "default":
-		refresh(&defaultDriver{
-			userDriver: &userDriver{
-				iUserCAKey: &dnsCA{
-					DNS: certDNSRecord,
-				},
-			},
-		})
-	case "enhanced":
-		refresh(&enhancedDriver{})
-	}
-}
+// Implement the interface `trustedCerts` to write cert to server
+// output the host cert to /etc//host-cert.pub
+
+// Implement the interface `sshdConfiger` to ensure following exists in /etc/sshd_config
+// HostCertificate /etc/ssh/host-cert.pub
