@@ -16,13 +16,14 @@ package main
 
 var (
 	certDNSRecord    string
-	jobTimeout       string
+	jobTimeout       int
 	jobInterval      string
 	refresherType    string
 	sshdCfgPath      string
 	sshdCfgPathMnt   string
 	sshdCfgFile      string
 	trustedCertsFile string
+	sshdPIDPath      string
 )
 
 // init functions collect configuration data
@@ -32,7 +33,9 @@ func init() {
 	sshdCfgPath = "/etc/ssh/"
 	sshdCfgPathMnt = "/tmp/" // /host/etc/ssh/
 	sshdCfgFile = "sshd_config"
+	sshdPIDPath = "/tmp/sshd.pid"
 	trustedCertsFile = "trusted_certs"
+	jobTimeout = 300
 }
 
 func main() {
@@ -41,7 +44,8 @@ func main() {
 	case "default":
 		refresh(&defaultDriver{
 			driver: &driver{
-				iSSHdConfiger: &userSSHdConfig{},
+				iSSHdConfiger:  &userSSHdConfig{},
+				iSSHdRestarter: &sshd{},
 			},
 			userDriver: &userDriver{
 				iUserCAKey: &dnsCA{

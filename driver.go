@@ -30,6 +30,7 @@ type hostDriver struct {
 type driver struct {
 	iSSHdConfiger    sshdConfiger
 	iServerValidator serverValidator
+	iSSHdRestarter   sshdRestarter
 }
 
 // userCAKey is the interface to retrieve CA Public Key
@@ -68,6 +69,7 @@ type certSigner interface {
 // sshdRestarter is the interface to restart sshd service
 type sshdRestarter interface {
 	restartSSHd() error
+	setPID(string)
 }
 
 // serverValidator is the interface to run basic checks on the server

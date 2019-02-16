@@ -24,6 +24,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
+	"strings"
 )
 
 // dnsCA stores CA key pairs in DNS txt record
@@ -116,5 +118,26 @@ func (u *userSSHdConfig) ensureSSHdCfg() error {
 		return errors.New("Failed to edit sshd_config")
 	}
 
+	return nil
+}
+
+type sshd struct {
+	pid string // path to pid file
+}
+
+func (s *sshd) setPID(pid string) {
+	s.pid = pid
+}
+
+func (s *sshd) restartSSHd() error {
+	log.Println("restart sshd")
+	PID, _ := ioutil.ReadFile(s.pid)
+	cmd := exec.Command("kill", "-HUP", strings.TrimSpace(string(PID)))
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Printf("Failed to kill sshd process due to %v", err)
+		return err
+	}
+	log.Printf("Output %v", string(out))
 	return nil
 }

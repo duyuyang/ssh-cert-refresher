@@ -19,6 +19,7 @@ package main
 // ------------
 
 import (
+	"context"
 	"log"
 	"time"
 )
@@ -73,6 +74,8 @@ func (d *defaultDriver) refreshCert() {
 
 	// refreshUserCert is an infinite loop delay time.Duration
 	for {
+		_, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+		defer cancel()
 		log.Println("looping through refreshing the cert")
 
 		// get the ca kay to trust file
@@ -84,21 +87,22 @@ func (d *defaultDriver) refreshCert() {
 		d.userDriver.iTrustedCerts.setCert(cert, nil)
 		d.userDriver.iTrustedCerts.useTrustedCerts()
 
-		// restart ssh
-
+		// restart sshd
+		d.driver.iSSHdRestarter.setPID(sshdPIDPath)
+		d.driver.iSSHdRestarter.restartSSHd()
 		time.Sleep(time.Second * 2)
 	}
 }
 
 // enhancedRefresher stores the data required for both user and host certificate
 type enhancedDriver struct {
-	//driver     *driver
+	driver     *driver
 	userDriver *userDriver
 	hostDriver *hostDriver
 }
 
-// refreshCert implements the interface `certRefresher`
-func (ed *enhancedDriver) refreshCert() {}
-
 // ensureSSHdCfg
 func (ed *enhancedDriver) setupSSHdCfg() {}
+
+// refreshCert implements the interface `certRefresher`
+func (ed *enhancedDriver) refreshCert() {}
