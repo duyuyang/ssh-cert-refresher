@@ -24,15 +24,19 @@ import (
 )
 
 // sshdConfig Implement the ensureSSHdCfg function
-func sshdConfig(sc sshdConfiger) {
-	sc.ensureSSHdCfg()
-}
+// func sshdConfig(sc sshdConfiger) {
+// 	sc.ensureSSHdCfg()
+// }
 
 // refresh Implement the refreshCert function
 func refresh(re certRefresher) {
 	re.setupSSHdCfg()
 	re.refreshCert()
 }
+
+// func restartSSHd(sr sshdRestarter) {
+// 	sr.restartSSHd()
+// }
 
 // server stores services required running on the server
 type server struct {
@@ -59,11 +63,9 @@ type defaultDriver struct {
 func (d *defaultDriver) setupSSHdCfg() {
 	// Assume run this function once
 	log.Println("setup sshd_config")
-	sshdConfig(&userSSHdConfig{
-		sshPath:    sshdCfgPath,
-		sshMntPath: sshdCfgPathMnt,
-		file:       sshdCfgFile,
-	})
+	d.driver.iSSHdConfiger.setUserSSHdConfig(sshdCfgPath, sshdCfgPathMnt, sshdCfgFile, "LogLevel VERBOSE\nTrustedUserCAKeys ")
+	// run ensureSSHdCfg
+	d.driver.iSSHdConfiger.ensureSSHdCfg()
 }
 
 // refreshCert implements the interface `certRefresher`

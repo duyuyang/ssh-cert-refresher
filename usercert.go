@@ -93,6 +93,13 @@ type userSSHdConfig struct {
 	content    string
 }
 
+func (u *userSSHdConfig) setUserSSHdConfig(sshPath string, sshMntPath string, file string, content string) {
+	u.sshPath = sshPath
+	u.sshMntPath = sshMntPath
+	u.file = file
+	u.content = content
+}
+
 // ensureSSHdCfg implement `sshdConfiger` to edit sshd_config
 func (u *userSSHdConfig) ensureSSHdCfg() error {
 	// Assume run this function once
@@ -105,7 +112,7 @@ func (u *userSSHdConfig) ensureSSHdCfg() error {
 
 	defer file.Close()
 
-	if _, err := file.Write([]byte("LogLevel VERBOSE\nTrustedUserCAKeys " + u.sshPath + u.file + "\n")); err != nil {
+	if _, err := file.Write([]byte(u.content + u.sshPath + u.file + "\n")); err != nil {
 		return errors.New("Failed to edit sshd_config")
 	}
 

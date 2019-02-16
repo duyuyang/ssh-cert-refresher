@@ -46,6 +46,7 @@ type trustedCerts interface {
 // sshdConfiger is the interface to edit /etc//sshd_config
 type sshdConfiger interface {
 	ensureSSHdCfg() error
+	setUserSSHdConfig(sshPath string, sshMntPath string, file string, content string)
 }
 
 // certRefresher is the interface to loop the refresher
