@@ -51,7 +51,7 @@ type sshdConfiger interface {
 // certRefresher is the interface to loop the refresher
 type certRefresher interface {
 	refreshCert()
-	ensureSSHdCfg() error
+	setupSSHdCfg()
 }
 
 // sshKeyGenerator is the interface to generate SSH key pairs

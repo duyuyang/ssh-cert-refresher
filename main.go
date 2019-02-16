@@ -39,12 +39,10 @@ func main() {
 
 	switch refresherType {
 	case "default":
-		sshdConfig(&userSSHdConfig{
-			sshPath:    sshdCfgPath,
-			sshMntPath: sshdCfgPathMnt,
-			file:       sshdCfgFile,
-		})
 		refresh(&defaultDriver{
+			driver: &driver{
+				iSSHdConfiger: &userSSHdConfig{},
+			},
 			userDriver: &userDriver{
 				iUserCAKey: &dnsCA{
 					DNS: certDNSRecord,
@@ -53,7 +51,6 @@ func main() {
 			},
 		})
 	case "enhanced":
-		sshdConfig(&enhancedDriver{})
 		refresh(&enhancedDriver{})
 	}
 }

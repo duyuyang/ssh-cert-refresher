@@ -30,7 +30,7 @@ func sshdConfig(sc sshdConfiger) {
 
 // refresh Implement the refreshCert function
 func refresh(re certRefresher) {
-	re.ensureSSHdCfg()
+	re.setupSSHdCfg()
 	re.refreshCert()
 }
 
@@ -56,10 +56,14 @@ type defaultDriver struct {
 	userDriver *userDriver
 }
 
-func (d *defaultDriver) ensureSSHdCfg() error {
+func (d *defaultDriver) setupSSHdCfg() {
 	// Assume run this function once
-
-	return nil
+	log.Println("setup sshd_config")
+	sshdConfig(&userSSHdConfig{
+		sshPath:    sshdCfgPath,
+		sshMntPath: sshdCfgPathMnt,
+		file:       sshdCfgFile,
+	})
 }
 
 // refreshCert implements the interface `certRefresher`
@@ -95,6 +99,4 @@ type enhancedDriver struct {
 func (ed *enhancedDriver) refreshCert() {}
 
 // ensureSSHdCfg
-func (ed *enhancedDriver) ensureSSHdCfg() error {
-	return nil
-}
+func (ed *enhancedDriver) setupSSHdCfg() {}
