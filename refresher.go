@@ -23,8 +23,14 @@ import (
 	"time"
 )
 
+// sshdConfig Implement the ensureSSHdCfg function
+func sshdConfig(sc sshdConfiger) {
+	sc.ensureSSHdCfg()
+}
+
 // refresh Implement the refreshCert function
 func refresh(re certRefresher) {
+	re.ensureSSHdCfg()
 	re.refreshCert()
 }
 
@@ -50,22 +56,29 @@ type defaultDriver struct {
 	userDriver *userDriver
 }
 
+func (d *defaultDriver) ensureSSHdCfg() error {
+	// Assume run this function once
+
+	return nil
+}
+
 // refreshCert implements the interface `certRefresher`
-func (dr *defaultDriver) refreshCert() {
+func (d *defaultDriver) refreshCert() {
 
 	// refreshUserCert is an infinite loop delay time.Duration
 	for {
 		log.Println("looping through refreshing the cert")
 
 		// get the ca kay to trust file
-		dr.userDriver.iUserCAKey.getUserCAKey()
-		// edit ssh_config
+		cert, err := d.userDriver.iUserCAKey.getUserCAKey()
+		if err != nil {
+			log.Printf("Error Get User CA key, %v", err)
+			d.userDriver.iTrustedCerts.setCert("", err)
+		}
+		d.userDriver.iTrustedCerts.setCert(cert, nil)
+		d.userDriver.iTrustedCerts.useTrustedCerts()
 
-		// if anything changes, restart ssh
-
-		// if dr := trustedCerts(getUserCAKey(DNS)); dr != nil {
-		// 	log.Printf("Failed to write trusted cert, %v", dr)
-		// }
+		// restart ssh
 
 		time.Sleep(time.Second * 2)
 	}
@@ -73,10 +86,15 @@ func (dr *defaultDriver) refreshCert() {
 
 // enhancedRefresher stores the data required for both user and host certificate
 type enhancedDriver struct {
-	driver     *driver
+	//driver     *driver
 	userDriver *userDriver
 	hostDriver *hostDriver
 }
 
 // refreshCert implements the interface `certRefresher`
-func (er *enhancedDriver) refreshCert() {}
+func (ed *enhancedDriver) refreshCert() {}
+
+// ensureSSHdCfg
+func (ed *enhancedDriver) ensureSSHdCfg() error {
+	return nil
+}

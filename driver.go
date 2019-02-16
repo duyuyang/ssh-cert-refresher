@@ -40,17 +40,18 @@ type userCAKey interface {
 // trustedCerts is the interface to write cert to the server
 type trustedCerts interface {
 	useTrustedCerts() error
+	setCert(data string, err error)
 }
 
 // sshdConfiger is the interface to edit /etc//sshd_config
 type sshdConfiger interface {
 	ensureSSHdCfg() error
-	restartSSHd() error
 }
 
 // certRefresher is the interface to loop the refresher
 type certRefresher interface {
 	refreshCert()
+	ensureSSHdCfg() error
 }
 
 // sshKeyGenerator is the interface to generate SSH key pairs
@@ -64,9 +65,9 @@ type certSigner interface {
 }
 
 // sshdRestarter is the interface to restart sshd service
-// type sshdRestarter interface {
-// 	restartSSHd() error
-// }
+type sshdRestarter interface {
+	restartSSHd() error
+}
 
 // serverValidator is the interface to run basic checks on the server
 type serverValidator interface {

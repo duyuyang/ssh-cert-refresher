@@ -20,8 +20,10 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
 	"log"
 	"net"
+	"os"
 )
 
 // dnsCA stores CA key pairs in DNS txt record
@@ -32,13 +34,16 @@ type dnsCA struct {
 
 // getUserCAKey implement userCAKey to retrieve user CA public key from DNS txt record
 func (dc *dnsCA) getUserCAKey() (string, error) {
+	// Assume this DNS record stores one public key only
 	log.Printf("pull cert from DNS txt: %v", dc.DNS)
-	txtrecords, _ := net.LookupTXT(dc.DNS)
-
-	for _, txt := range txtrecords {
-		log.Println(txt)
+	if txtrecords, err := net.LookupTXT(dc.DNS); err != nil {
+		return "", errors.New("Failed to reach DNS record")
+	} else {
+		if len(txtrecords) > 0 {
+			return txtrecords[0], nil
+		}
+		return "", errors.New("DNS record is empty")
 	}
-	return "cert", nil
 }
 
 // paramCA stores CA key pairs in AWS Parameter Store
@@ -49,7 +54,7 @@ type paramCA struct {
 // getUserCAkey implement userCAKey to retrieve user CA public from AWS parameter store
 func (dc *paramCA) getUserCAKey() (string, error) {
 	log.Println("pull cert from AWS parameter store")
-	return "cert", nil
+	return "", errors.New("Not implement yet")
 }
 
 // cert stores certificate data
@@ -61,21 +66,48 @@ type userCert struct {
 // useTrustedCerts implement `trustedCerts` write the User CA Pub Key into /etc/ssh/trusted_certs
 func (c *userCert) useTrustedCerts() error {
 	if c.err != nil {
-		return errors.New("not getting response")
+		return errors.New("Error with User Cert")
 	}
-	log.Println("write trusted cert")
+	b := []byte(c.data + "\n")
+	err := ioutil.WriteFile(sshdCfgPathMnt+"trusted_cert", b, 0644)
+	if err != nil {
+		log.Printf("error write to trusted_cert %v", err)
+		return err
+	}
+	log.Printf("Override trusted_cert with %v", c.data)
+
 	return nil
+}
+
+// setData implement `trustedCerts` to update cert object
+func (c *userCert) setCert(data string, err error) {
+	c.data = data
+	c.err = err
 }
 
 // sshdConfig stores sshd_config required content
 type userSSHdConfig struct {
-	path    string
-	file    string
-	content string
-	err     error
+	sshPath    string
+	sshMntPath string
+	file       string
+	content    string
 }
 
 // ensureSSHdCfg implement `sshdConfiger` to edit sshd_config
 func (u *userSSHdConfig) ensureSSHdCfg() error {
+	// Assume run this function once
+	log.Println("Add TrustedUserCAKeys /etc/ssh/trusted_cert to " + u.sshPath + "sshd_config")
+	file, err := os.OpenFile(u.sshMntPath+u.file, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	if _, err := file.Write([]byte("LogLevel VERBOSE\nTrustedUserCAKeys " + u.sshPath + u.file + "\n")); err != nil {
+		return errors.New("Failed to edit sshd_config")
+	}
+
 	return nil
 }

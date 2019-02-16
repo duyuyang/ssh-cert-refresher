@@ -15,35 +15,45 @@
 package main
 
 var (
-	certDNSRecord string
-	jobTimeout    string
-	jobInterval   string
-	refresherType string
-)
-
-const (
-	sshdCfgPath = "/etc/ssh/"
-	sshdCfgFile = "sshd_config"
+	certDNSRecord    string
+	jobTimeout       string
+	jobInterval      string
+	refresherType    string
+	sshdCfgPath      string
+	sshdCfgPathMnt   string
+	sshdCfgFile      string
+	trustedCertsFile string
 )
 
 // init functions collect configuration data
 func init() {
 	refresherType = "default"
-	certDNSRecord = "facebook.com"
+	certDNSRecord = "sshephalopod-ca-cert.cd2e-hub.realestate.com.au"
+	sshdCfgPath = "/etc/ssh/"
+	sshdCfgPathMnt = "/tmp/" // /host/etc/ssh/
+	sshdCfgFile = "sshd_config"
+	trustedCertsFile = "trusted_certs"
 }
 
 func main() {
 
 	switch refresherType {
 	case "default":
+		sshdConfig(&userSSHdConfig{
+			sshPath:    sshdCfgPath,
+			sshMntPath: sshdCfgPathMnt,
+			file:       sshdCfgFile,
+		})
 		refresh(&defaultDriver{
 			userDriver: &userDriver{
 				iUserCAKey: &dnsCA{
 					DNS: certDNSRecord,
 				},
+				iTrustedCerts: &userCert{},
 			},
 		})
 	case "enhanced":
+		sshdConfig(&enhancedDriver{})
 		refresh(&enhancedDriver{})
 	}
 }
