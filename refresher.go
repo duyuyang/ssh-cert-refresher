@@ -19,20 +19,25 @@ package main
 // ------------
 
 import (
+	"context"
 	"log"
 	"time"
 )
 
 // sshdConfig Implement the ensureSSHdCfg function
-func sshdConfig(sc sshdConfiger) {
-	sc.ensureSSHdCfg()
-}
+// func sshdConfig(sc sshdConfiger) {
+// 	sc.ensureSSHdCfg()
+// }
 
 // refresh Implement the refreshCert function
 func refresh(re certRefresher) {
-	re.ensureSSHdCfg()
+	re.setupSSHdCfg()
 	re.refreshCert()
 }
+
+// func restartSSHd(sr sshdRestarter) {
+// 	sr.restartSSHd()
+// }
 
 // server stores services required running on the server
 type server struct {
@@ -56,10 +61,12 @@ type defaultDriver struct {
 	userDriver *userDriver
 }
 
-func (d *defaultDriver) ensureSSHdCfg() error {
+func (d *defaultDriver) setupSSHdCfg() {
 	// Assume run this function once
-
-	return nil
+	log.Println("setup sshd_config")
+	d.driver.iSSHdConfiger.setUserSSHdConfig(sshdCfgPath, sshdCfgPathMnt, sshdCfgFile, "LogLevel VERBOSE\nTrustedUserCAKeys ")
+	// run ensureSSHdCfg
+	d.driver.iSSHdConfiger.ensureSSHdCfg()
 }
 
 // refreshCert implements the interface `certRefresher`
@@ -67,6 +74,8 @@ func (d *defaultDriver) refreshCert() {
 
 	// refreshUserCert is an infinite loop delay time.Duration
 	for {
+		_, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+		defer cancel()
 		log.Println("looping through refreshing the cert")
 
 		// get the ca kay to trust file
@@ -78,23 +87,22 @@ func (d *defaultDriver) refreshCert() {
 		d.userDriver.iTrustedCerts.setCert(cert, nil)
 		d.userDriver.iTrustedCerts.useTrustedCerts()
 
-		// restart ssh
-
+		// restart sshd
+		d.driver.iSSHdRestarter.setPID(sshdPIDPath)
+		d.driver.iSSHdRestarter.restartSSHd()
 		time.Sleep(time.Second * 2)
 	}
 }
 
 // enhancedRefresher stores the data required for both user and host certificate
 type enhancedDriver struct {
-	//driver     *driver
+	driver     *driver
 	userDriver *userDriver
 	hostDriver *hostDriver
 }
 
+// ensureSSHdCfg
+func (ed *enhancedDriver) setupSSHdCfg() {}
+
 // refreshCert implements the interface `certRefresher`
 func (ed *enhancedDriver) refreshCert() {}
-
-// ensureSSHdCfg
-func (ed *enhancedDriver) ensureSSHdCfg() error {
-	return nil
-}

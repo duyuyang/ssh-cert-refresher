@@ -24,6 +24,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
+	"strings"
 )
 
 // dnsCA stores CA key pairs in DNS txt record
@@ -93,6 +95,13 @@ type userSSHdConfig struct {
 	content    string
 }
 
+func (u *userSSHdConfig) setUserSSHdConfig(sshPath string, sshMntPath string, file string, content string) {
+	u.sshPath = sshPath
+	u.sshMntPath = sshMntPath
+	u.file = file
+	u.content = content
+}
+
 // ensureSSHdCfg implement `sshdConfiger` to edit sshd_config
 func (u *userSSHdConfig) ensureSSHdCfg() error {
 	// Assume run this function once
@@ -105,9 +114,30 @@ func (u *userSSHdConfig) ensureSSHdCfg() error {
 
 	defer file.Close()
 
-	if _, err := file.Write([]byte("LogLevel VERBOSE\nTrustedUserCAKeys " + u.sshPath + u.file + "\n")); err != nil {
+	if _, err := file.Write([]byte(u.content + u.sshPath + u.file + "\n")); err != nil {
 		return errors.New("Failed to edit sshd_config")
 	}
 
+	return nil
+}
+
+type sshd struct {
+	pid string // path to pid file
+}
+
+func (s *sshd) setPID(pid string) {
+	s.pid = pid
+}
+
+func (s *sshd) restartSSHd() error {
+	log.Println("restart sshd")
+	PID, _ := ioutil.ReadFile(s.pid)
+	cmd := exec.Command("kill", "-HUP", strings.TrimSpace(string(PID)))
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Printf("Failed to kill sshd process due to %v", err)
+		return err
+	}
+	log.Printf("Output %v", string(out))
 	return nil
 }

@@ -30,6 +30,7 @@ type hostDriver struct {
 type driver struct {
 	iSSHdConfiger    sshdConfiger
 	iServerValidator serverValidator
+	iSSHdRestarter   sshdRestarter
 }
 
 // userCAKey is the interface to retrieve CA Public Key
@@ -46,12 +47,13 @@ type trustedCerts interface {
 // sshdConfiger is the interface to edit /etc//sshd_config
 type sshdConfiger interface {
 	ensureSSHdCfg() error
+	setUserSSHdConfig(sshPath string, sshMntPath string, file string, content string)
 }
 
 // certRefresher is the interface to loop the refresher
 type certRefresher interface {
 	refreshCert()
-	ensureSSHdCfg() error
+	setupSSHdCfg()
 }
 
 // sshKeyGenerator is the interface to generate SSH key pairs
@@ -67,6 +69,7 @@ type certSigner interface {
 // sshdRestarter is the interface to restart sshd service
 type sshdRestarter interface {
 	restartSSHd() error
+	setPID(string)
 }
 
 // serverValidator is the interface to run basic checks on the server
