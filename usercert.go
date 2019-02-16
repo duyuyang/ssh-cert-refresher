@@ -42,8 +42,8 @@ func (dc *dnsCA) getUserCAKey() (string, error) {
 		if len(txtrecords) > 0 {
 			return txtrecords[0], nil
 		}
-		return "", errors.New("DNS record is empty")
 	}
+	return "", errors.New("DNS record is empty")
 }
 
 // paramCA stores CA key pairs in AWS Parameter Store
