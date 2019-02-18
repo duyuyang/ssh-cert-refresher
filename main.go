@@ -28,7 +28,7 @@ var (
 
 // init functions collect configuration data
 func init() {
-	provider = "default"
+	provider = "sshephalopod"
 	certDNSRecord = "sshephalopod-ca-cert.cd2e-hub.realestate.com.au"
 	sshdCfgPath = "/etc/ssh/"
 	sshdCfgPathMnt = "/tmp/" // /host/etc/ssh/
