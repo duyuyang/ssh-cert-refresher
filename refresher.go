@@ -90,7 +90,7 @@ func (d *defaultDriver) refreshCert() {
 		// restart sshd
 		d.driver.iSSHdRestarter.setPID(sshdPIDPath)
 		d.driver.iSSHdRestarter.restartSSHd()
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 200)
 	}
 }
 
