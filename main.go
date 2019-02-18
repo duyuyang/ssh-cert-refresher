@@ -18,7 +18,7 @@ var (
 	certDNSRecord    string
 	jobTimeout       int
 	jobInterval      string
-	refresherType    string
+	provider         string
 	sshdCfgPath      string
 	sshdCfgPathMnt   string
 	sshdCfgFile      string
@@ -28,7 +28,7 @@ var (
 
 // init functions collect configuration data
 func init() {
-	refresherType = "default"
+	provider = "default"
 	certDNSRecord = "sshephalopod-ca-cert.cd2e-hub.realestate.com.au"
 	sshdCfgPath = "/etc/ssh/"
 	sshdCfgPathMnt = "/tmp/" // /host/etc/ssh/
@@ -40,8 +40,8 @@ func init() {
 
 func main() {
 
-	switch refresherType {
-	case "default":
+	switch provider {
+	case "sshephalopod":
 		refresh(&defaultDriver{
 			driver: &driver{
 				iSSHdConfiger:  &userSSHdConfig{},
@@ -54,7 +54,9 @@ func main() {
 				iTrustedCerts: &userCert{},
 			},
 		})
-	case "enhanced":
+	case "grasshopper":
 		refresh(&enhancedDriver{})
+	case "vault":
+		refresh(&defaultDriver{})
 	}
 }
